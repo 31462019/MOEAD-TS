@@ -5,7 +5,7 @@ import random
 
 class MOEAD_TS():
 
-	def __init__(self,fevals):
+	def __init__(self,fevals,file_name):
 		self.MaxFunEvals = fevals
 		#最大迭代次数
 		self.neighborhoodsize = 10
@@ -14,16 +14,15 @@ class MOEAD_TS():
 		#目标函数个数
 		self.subnum = 20
 		#即N，子问题个数
-		self.room_num = 15
-		#房间数
-		self.mid_a,self.mid_b =2,3
-		#左中心岛，右中心岛
 		self.list_sub= []
 		#存储sub的list
 		self.list_pi = [1.0]*self.subnum	
 		#存储权益值
 		self.reference = self.numF*[0.0]	
 		#存储参考点
+		self.file_name = file_name
+		self.read_data()
+		#读取文件数据
 
 	def init_weight_vector(self):
 		for i in range(self.subnum):
@@ -31,15 +30,15 @@ class MOEAD_TS():
 			sub_problem.lam1 = float(i)/(self.subnum - 1)
 			sub_problem.lam2 = 1.0 - sub_problem.lam1
 			self.list_sub.append(sub_problem)
+		print 'hello'
 	
 	def init_reference_point(self):
-		for i in range(self.numF):
-			ind = individual(self.room_num)
-			ind.
+		#for i in range(self.numF):
+			ind = individual(self)
+			ind.randomize()
  
 	def init_neighborhood(self):
 		pass
-
 
 
 	def init_population(self):
@@ -50,16 +49,52 @@ class MOEAD_TS():
 
 	def update_reference_point(self):
 		pass
-
+		
+	def read_data(self):
+		f = open(self.file_name,'r')
+		line = f.readline()
+		if line.strip() == 'Room':
+			i = f.readline()
+			self.room = int(i.strip())
+			line = f.readline()
+		if line.strip() =='center_island':
+			i = f.readline()
+			self.cent_a,self.cent_b = map(int,i.strip().split(','))
+			line = f.readline()
+		if line.strip() =='width':
+			i = f.readline()
+			self.width = map(float,i.strip().split(','))
+			line = f.readline()			
+		if line.strip() =='flow':
+			self.flow = []
+			for i in range(self.room):
+				line = f.readline()
+				self.flow.append(map(float,line.strip().split(',')))
+			line = f.readline()
+		if line.strip() =='limit_row':
+			i = f.readline()
+			self.limit_row = map(float,i.strip().split(','))
+			line = f.readline()
+		if line.strip() == 'limit_wid':
+			i = f.readline()
+			self.limit_wid = map(float,i.strip().split(','))
+			line = f.readline()
+		if line.strip() == 'corridor':
+			i = f.readline()
+			self.corridor = int(i.strip())
+			line = f.readline()
+		f.close()
+	
 	def show(self):
 		print '1.sub_problem'
 		for i in self.list_sub:
 			print i.lam1,i.lam2
 		print '2.list_pi'
-		print self.list_pi
 
+	def run(self):
+		pass
 		
 if __name__ =='__main__':
-	moead_ts = MOEAD_TS(200)
-	moead_ts.init_weight_vector()
+	moead_ts = MOEAD_TS(200,'data/example_1.txt')
+	moead_ts.init_reference_point()
 	moead_ts.show()
