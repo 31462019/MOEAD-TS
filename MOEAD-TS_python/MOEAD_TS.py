@@ -25,6 +25,7 @@ class MOEAD_TS():
 		#读取文件数据
 
 	def init_weight_vector(self):
+	#初始化每个子问题的权向量，并将子问题加至self的List表中
 		for i in range(self.subnum):
 			sub_problem = SubProblem()
 			sub_problem.lam1 = float(i)/(self.subnum - 1)
@@ -34,9 +35,9 @@ class MOEAD_TS():
 	
 	def init_reference_point(self):
 		#for i in range(self.numF):
-			ind = individual(self)
+			ind = individual(self.file_name)
 			ind.randomize()
- 
+
 	def init_neighborhood(self):
 		pass
 
@@ -83,6 +84,12 @@ class MOEAD_TS():
 			i = f.readline()
 			self.corridor = int(i.strip())
 			line = f.readline()
+		if line.strip() == 'adj':
+			self.adj = []
+			for i in range(self.room):
+				line = f.readline()
+				self.adj.append(map(int,line.strip().split(',')))
+			line = f.readline()
 		f.close()
 	
 	def show(self):
@@ -90,6 +97,8 @@ class MOEAD_TS():
 		for i in self.list_sub:
 			print i.lam1,i.lam2
 		print '2.list_pi'
+		print self.adj
+		print self.flow
 
 	def run(self):
 		pass
