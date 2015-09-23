@@ -3,6 +3,7 @@
 from random import shuffle
 from random import randint
 
+import numpy as np
 
 class individual():
 	def __init__(self,file_name):
@@ -11,6 +12,7 @@ class individual():
 		self.num = self.room - self.a - self.b  		#除中心岛外的其他房间个数
 		self.array =range(self.room)
 		self.cut=[0,self.a,self.b,self.num]
+
 		self.obj = [0.0,0.0]
 
 	def randomize(self):
@@ -18,6 +20,7 @@ class individual():
 		shuffle(self.array)				#将顺序打乱，即随机产生初始解
 		cut = randint(1,self.num-1)
 		self.cut = [cut,self.a,self.b,self.num-cut]
+		self.cutsum = [sum(self.cut[0:x+1]) for x in range(len(self.cut))]
 		self.gap = self.limit_wid	#初始化时将其设置为最小值
 		self.wid = [0]*3				#计算三行的宽度
 		for i in range(self.cut[0]):
@@ -30,24 +33,70 @@ class individual():
 		print self.wid
 		print self.limit_row
 
-	#随机初始化
-	'''
-	def GreedyRepairHeuristic(self):
-		while(!self.IsFeasible()):
-			CurrentValue = FitnessValue()
-	'''
 	def isFeasible(self):				#判断解是否满足条件
 		for i in self.wid:
 			if(i > self.obj.limit_row):
 				return False
 		return True
 
-	def getObj(self):
-		self.distance =[[],[],[],[],[],[],[],[]]
+	def get_obj(self):
+		
+		self.get_dis()		#获取房间之间的距离，存入self.list_dis中
+
+		#获取目标函数值
+		self.func = [0.0,0.0]
+		for i in range(self.room-1):
+			for j in range(i+1,self.room):
+				self.func[0] += self.list_dis[i][j]*self.flow[i][j]
+				self.func[1] += self.list_dis[i][j]*self.adj[i][j]
+		#print self.func
+
+	def get_dis(self):
+	#获取相互之间的距离
+
+		locate = []
+		self.dict_locate = {}
+
+		#第一行
+		ans = self.width[self.array[0]]/2
+		locate.append([ans])
+		self.dict_locate[self.array[0]] = (ans,0)
+
+		for i in range(self.cut[0]):
+			if(i == 0):
+				continue
+			ans = locate[0][-1] + (self.width[self.array[i-1]]+self.width[self.array[i]])/2
+			locate[0].append(ans)
+			self.dict_locate[self.array[i]] = (ans,0)
+
+		#第二行
+		ans = self.width[self.array[self.cutsum[0]]]/2 + self.gap[0]
+		locate.append([ans])
+		self.dict_locate[self.array[self.cutsum[0]]] = (ans,1)
+
+		for i in range(self.cutsum[0] + 1,self.cutsum[2]):
+			ans = locate[1][-1] + (self.width[self.array[i-1]] + self.width[self.array[i]])/2
+			locate[1].append(ans)
+			if(i < self.cutsum[1]):
+				self.dict_locate[self.array[i]] = (ans,1)
+			else:
+				self.dict_locate[self.array[i]] = (ans+self.gap[1],1)
+
+		#第三行
+		ans = self.width[self.array[self.cutsum[2]]]/2
+		locate.append([ans])
+		self.dict_locate[self.array[self.cutsum[2]]] = (ans,2)
+
+		for i in range(self.cutsum[2]+1,self.cutsum[3]):
+			ans = locate[2][-1] + (self.width[self.array[i-1]]+self.width[self.array[i]])/2
+			locate[2].append(ans)
+			self.dict_locate[self.array[i]] = (ans,2)
+
+		#print self.dict_locate
+		self.list_dis = []
 		for i in range(self.room):
-			for j in range(self.room):
-				if(i == j):
-					
+			self.list_dis.append([abs(self.dict_locate[i][0] - self.dict_locate[j][0]) +abs(self.dict_locate[i][1] - self.dict_locate[j][1])*self.corridor for j in range(self.room)])
+		print self.list_dis
 
 	def read_data(self,file_name):
 		f = open(file_name,'r')
@@ -82,11 +131,23 @@ class individual():
 			i = f.readline()
 			self.corridor = int(i.strip())								#走廊宽度
 			line = f.readline()
+		if line.strip() == 'adj':
+			self.adj = []												#紧密度
+			for i in range(self.room):
+				line = f.readline()
+				self.adj.append(map(int,line.strip().split(',')))
+			line = f.readline()
 		f.close()
 	
+	def show(self):
+		print 'self.array',self.array
+		print 'self.cut',self.cut
+		print 'self.cutsum',self.cutsum
+		print 'self.locate',self.dict_locate
         
 
 if __name__ == '__main__':
-	ind = individual(15)
+	ind = individual('data/example_1.txt')
 	ind.randomize()
-
+	ind.get_obj()
+	
