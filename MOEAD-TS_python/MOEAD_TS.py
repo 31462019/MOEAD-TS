@@ -1,3 +1,4 @@
+
 #encoding=utf-8
 from sub_problem import SubProblem
 from individual import individual
@@ -21,6 +22,8 @@ class MOEAD_TS():
 		self.reference = [float('inf'),float('inf')]	
 		#存储参考点
 		self.file_name = file_name
+
+		self.FunEvals = 0
 		self.read_data()
 		#读取文件数据
 
@@ -50,18 +53,24 @@ class MOEAD_TS():
 
 
 	def init_population(self):
-		pass
+		for i in range(self.subnum):
+			ind = individual(self.file_name)
+			ind.randomize()
+			self.update_reference_point(ind)
+			self.list_sub[i].list_ind.append(ind)
+			self.FunEvals += 1
+		
 
 	def update_neighbor_solution(self):
 		pass
 
 	def update_reference_point(self,ind):									
 		ind.get_obj()
-		print ind.func
+		#print ind.func
 		for i in range(self.numF):
 			if ind.func[i] < self.reference[i]:
 				self.reference[i] = ind.func[i]
-		print 'reference',self.reference
+		#print 'reference',self.reference
 		
 	def read_data(self):
 		f = open(self.file_name,'r')
@@ -116,6 +125,7 @@ class MOEAD_TS():
 		self.init_weight_vector()
 		self.init_neighborhood()
 		self.init_reference_point()
+		self.init_population()
 
 		
 if __name__ =='__main__':

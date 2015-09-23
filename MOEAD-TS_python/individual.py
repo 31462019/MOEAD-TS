@@ -13,14 +13,14 @@ class individual():
 		self.array =range(self.room)
 		self.cut=[0,self.a,self.b,self.num]
 
-		self.obj = [0.0,0.0]
+		self.func = [0.0,0.0]
 
 	def randomize(self):
 		#产生随机解
 		shuffle(self.array)				#将顺序打乱，即随机产生初始解
 		cut = randint(1,self.num-1)
 		self.cut = [cut,self.a,self.b,self.num-cut]
-		self.cutsum = [sum(self.cut[0:x+1]) for x in range(len(self.cut))]
+		
 		self.gap = self.limit_wid	#初始化时将其设置为最小值
 		self.wid = [0]*3				#计算三行的宽度
 		for i in range(self.cut[0]):
@@ -30,8 +30,8 @@ class individual():
 		self.wid[1] += self.gap[0] + self.gap[1] + self.gap[2]
 		for i in range(self.cut[3]):
 			self.wid[2] += self.width[self.array[i+cut+self.a+self.b]]
-		print self.wid
-		print self.limit_row
+		#print self.wid
+		#print self.limit_row
 
 	def isFeasible(self):				#判断解是否满足条件
 		for i in self.wid:
@@ -53,7 +53,7 @@ class individual():
 
 	def get_dis(self):
 	#获取相互之间的距离
-
+		self.cutsum = [sum(self.cut[0:x+1]) for x in range(len(self.cut))]
 		locate = []
 		self.dict_locate = {}
 
@@ -96,7 +96,7 @@ class individual():
 		self.list_dis = []
 		for i in range(self.room):
 			self.list_dis.append([abs(self.dict_locate[i][0] - self.dict_locate[j][0]) +abs(self.dict_locate[i][1] - self.dict_locate[j][1])*self.corridor for j in range(self.room)])
-		print self.list_dis
+		#print self.list_dis
 
 	def read_data(self,file_name):
 		f = open(file_name,'r')
@@ -149,5 +149,7 @@ class individual():
 if __name__ == '__main__':
 	ind = individual('data/example_1.txt')
 	ind.randomize()
+	ind.array = [2,0,6,5,1,3,4,7]
+	ind.cut = [3,2,2,1]
 	ind.get_obj()
 	
