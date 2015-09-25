@@ -5,6 +5,7 @@ from random import randint
 
 import numpy as np
 
+
 class individual():
 	def __init__(self,file_name):
 		self.read_data(file_name) 								
