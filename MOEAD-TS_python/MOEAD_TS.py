@@ -41,7 +41,7 @@ class MOEAD_TS():
 		ind.randomize()
 		self.update_reference_point(ind)
 
-	def init_neighborhood(self):
+	def init_neighborhood(self):						#@是否需要将neibor函数中的值算出来。在随机化后立即产生？如果不用，在哪里计算F的值
 		dis ={}
 		self.neibor = {}
 		for num in range(len(self.list_sub)):
@@ -50,7 +50,6 @@ class MOEAD_TS():
 			dis[i].sort(key = lambda x:x[0])	
 			self.neibor[i] = [dis[i][j][1] for j in range(self.subnum)][1:self.neighborsize+1]
 		#self.neibor存储以序列为键的最近的T个邻居
-
 
 	def init_population(self):
 		for i in range(self.subnum):
