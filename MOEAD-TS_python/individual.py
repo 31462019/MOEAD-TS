@@ -16,6 +16,7 @@ class individual():
 
 		self.func = [0.0,0.0]
 
+
 	def randomize(self):
 		#产生随机解
 		shuffle(self.array)				#将顺序打乱，即随机产生初始解
@@ -99,6 +100,14 @@ class individual():
 			self.list_dis.append([abs(self.dict_locate[i][0] - self.dict_locate[j][0]) +abs(self.dict_locate[i][1] - self.dict_locate[j][1])*self.corridor for j in range(self.room)])
 		#print self.list_dis
 
+	def compute_fitness_value(self,lam,reference):								#计算适应度函数，切比雪夫方法
+		
+		a = [lam[j]*abs(self.func[j] - reference[j]) for j in range(len(lam))]
+		#print self.func
+		return max(a) 
+
+
+
 	def read_data(self,file_name):
 		f = open(file_name,'r')
 		line = f.readline()
@@ -145,6 +154,7 @@ class individual():
 		print 'self.cut',self.cut
 		print 'self.cutsum',self.cutsum
 		print 'self.locate',self.dict_locate
+
         
 
 if __name__ == '__main__':
@@ -153,4 +163,5 @@ if __name__ == '__main__':
 	ind.array = [2,0,6,5,1,3,4,7]
 	ind.cut = [3,2,2,1]
 	ind.get_obj()
+	print randint(1,2)
 	
