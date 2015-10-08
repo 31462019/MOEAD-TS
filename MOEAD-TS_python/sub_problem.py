@@ -14,3 +14,5 @@ class SubProblem():
 
 	def compute_fitness_value(self,reference):	#计算当前适应度函数值
 		return self.individual.compute_fitness_value(self.lam,reference)
+
+

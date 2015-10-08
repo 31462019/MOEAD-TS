@@ -55,50 +55,58 @@ class individual():
 
 	def get_dis(self):
 	#获取相互之间的距离
-		self.cutsum = [sum(self.cut[0:x+1]) for x in range(len(self.cut))]
-		locate = []
-		self.dict_locate = {}
+		try:
+			self.cutsum = [sum(self.cut[0:x+1]) for x in range(len(self.cut))]
+			locate = []
+			self.dict_locate = {}
 
-		#第一行
-		ans = self.width[self.array[0]]/2
-		locate.append([ans])
-		self.dict_locate[self.array[0]] = (ans,0)
+			#第一行
+			ans = self.width[self.array[0]]/2
+			locate.append([ans])
+			self.dict_locate[self.array[0]] = (ans,0)
 
-		for i in range(self.cut[0]):
-			if(i == 0):
-				continue
-			ans = locate[0][-1] + (self.width[self.array[i-1]]+self.width[self.array[i]])/2
-			locate[0].append(ans)
-			self.dict_locate[self.array[i]] = (ans,0)
+			for i in range(self.cut[0]):
+				if(i == 0):
+					continue
+				ans = locate[0][-1] + (self.width[self.array[i-1]]+self.width[self.array[i]])/2
+				locate[0].append(ans)
+				self.dict_locate[self.array[i]] = (ans,0)
 
-		#第二行
-		ans = self.width[self.array[self.cutsum[0]]]/2 + self.gap[0]
-		locate.append([ans])
-		self.dict_locate[self.array[self.cutsum[0]]] = (ans,1)
+			#第二行
+			ans = self.width[self.array[self.cutsum[0]]]/2 + self.gap[0]
+			locate.append([ans])
+			self.dict_locate[self.array[self.cutsum[0]]] = (ans,1)
 
-		for i in range(self.cutsum[0] + 1,self.cutsum[2]):
-			ans = locate[1][-1] + (self.width[self.array[i-1]] + self.width[self.array[i]])/2
-			locate[1].append(ans)
-			if(i < self.cutsum[1]):
-				self.dict_locate[self.array[i]] = (ans,1)
-			else:
-				self.dict_locate[self.array[i]] = (ans+self.gap[1],1)
+			for i in range(self.cutsum[0] + 1,self.cutsum[2]):
+				ans = locate[1][-1] + (self.width[self.array[i-1]] + self.width[self.array[i]])/2
+				locate[1].append(ans)
+				if(i < self.cutsum[1]):
+					self.dict_locate[self.array[i]] = (ans,1)
+				else:
+					self.dict_locate[self.array[i]] = (ans+self.gap[1],1)
 
-		#第三行
-		ans = self.width[self.array[self.cutsum[2]]]/2
-		locate.append([ans])
-		self.dict_locate[self.array[self.cutsum[2]]] = (ans,2)
+			#第三行
+			ans = self.width[self.array[self.cutsum[2]]]/2
+			locate.append([ans])
+			self.dict_locate[self.array[self.cutsum[2]]] = (ans,2)
 
-		for i in range(self.cutsum[2]+1,self.cutsum[3]):
-			ans = locate[2][-1] + (self.width[self.array[i-1]]+self.width[self.array[i]])/2
-			locate[2].append(ans)
-			self.dict_locate[self.array[i]] = (ans,2)
+			for i in range(self.cutsum[2]+1,self.cutsum[3]):
+				ans = locate[2][-1] + (self.width[self.array[i-1]]+self.width[self.array[i]])/2
+				locate[2].append(ans)
+				self.dict_locate[self.array[i]] = (ans,2)
 
-		#print self.dict_locate
-		self.list_dis = []
-		for i in range(self.room):
-			self.list_dis.append([abs(self.dict_locate[i][0] - self.dict_locate[j][0]) +abs(self.dict_locate[i][1] - self.dict_locate[j][1])*self.corridor for j in range(self.room)])
-		#print self.list_dis
+			#print self.dict_locate
+			self.list_dis = []
+			for i in range(self.room):
+				self.list_dis.append([abs(self.dict_locate[i][0] - self.dict_locate[j][0]) +abs(self.dict_locate[i][1] - self.dict_locate[j][1])*self.corridor for j in range(self.room)])
+			#print self.list_dis
+		except Exception,e:
+			print e
+			print self.dict_locate
+			print self.list_dis
+			print self.cut
+			print self.array
+			
 
 	def compute_fitness_value(self,lam,reference):								#计算适应度函数，切比雪夫方法
 		
