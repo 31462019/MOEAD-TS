@@ -1,7 +1,7 @@
 #encoding=utf-8
 #暂认为，每个个体即是一个解
-from random import shuffle
-from random import randint
+from random import shuffle,randint,uniform
+#from random import randint
 
 import numpy as np
 
@@ -22,8 +22,10 @@ class individual():
 		shuffle(self.array)				#将顺序打乱，即随机产生初始解
 		cut = randint(1,self.num-1)
 		self.cut = [cut,self.a,self.b,self.num-cut]
-		
-		self.gap = self.limit_wid	#初始化时将其设置为最小值
+		#self.cut = [2,2,2,2]
+		#self.gap = self.limit_wid	#初始化时将其设置为最小值
+		self.gap = [3.25,2.075,2.0]
+		'''
 		self.wid = [0]*3				#计算三行的宽度
 		for i in range(self.cut[0]):
 			self.wid[0] += self.width[self.array[i]]
@@ -32,6 +34,17 @@ class individual():
 		self.wid[1] += self.gap[0] + self.gap[1] + self.gap[2]
 		for i in range(self.cut[3]):
 			self.wid[2] += self.width[self.array[i+cut+self.a+self.b]]
+		'''
+		'''
+		#随机生成间隙
+		gap_add = []
+		gap_add.append(uniform(0,self.limit_row[1] - self.wid[1]))
+		gap_add.append(uniform(0,self.limit_row[1] - self.wid[1] - gap_add[-1]))
+		gap_add.append(uniform(0,self.limit_row[1] - self.wid[1] - gap_add[-1] - gap_add[-2]))
+		for i in range(3):
+			self.gap[i] += gap_add[i]
+			self.wid[1] += gap_add[i] 		
+		'''
 		#print self.wid
 		#print self.limit_row
 
@@ -111,6 +124,7 @@ class individual():
 	def compute_fitness_value(self,lam,reference):								#计算适应度函数，切比雪夫方法
 		
 		a = [lam[j]*abs(self.func[j] - reference[j]) for j in range(len(lam))]
+		a[1] = a[1]*500
 		#print self.func
 		return max(a) 
 
@@ -166,10 +180,9 @@ class individual():
         
 
 if __name__ == '__main__':
-	ind = individual('data/example_1.txt')
+	ind = individual('data/example_1_8.txt')
 	ind.randomize()
-	ind.array = [2,0,6,5,1,3,4,7]
-	ind.cut = [3,2,2,1]
+	ind.array = [6,5,3,1,2,0,4,7]
+	ind.cut = [2,2,2,2]
 	ind.get_obj()
-	print randint(1,2)
-	
+	print ind.func

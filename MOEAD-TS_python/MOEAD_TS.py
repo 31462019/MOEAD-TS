@@ -2,7 +2,7 @@
 #encoding=utf-8
 from sub_problem import SubProblem
 from individual import individual
-from random import randint
+from random import randint,uniform
 from copy import deepcopy
 
 class MOEAD_TS():
@@ -10,11 +10,11 @@ class MOEAD_TS():
 	def __init__(self,fevals,file_name):
 		self.MaxFunEvals = fevals
 		#最大迭代次数
-		self.neighborsize = 50
+		self.neighborsize = 10
 		#邻居个数，即T
 		self.numF = 2
 		#目标函数个数
-		self.subnum = 200
+		self.subnum = 100
 		#即N，子问题个数
 		self.dict_sub= {}
 		#存储sub的list
@@ -72,7 +72,7 @@ class MOEAD_TS():
 
 
 	def init_weight_vector(self):
-	#初始化每个子问题的权向量，并将子问题加至self的List表中
+		#初始化每个子问题的权向量，并将子问题加至self的List表中
 		for i in range(self.subnum):
 			sub_problem = SubProblem()
 			sub_problem.lam[0] = float(i)/(self.subnum - 1)
@@ -88,7 +88,7 @@ class MOEAD_TS():
 		self.update_reference_point(ind)
 		print "init_reference_point done!"
 
-	def init_neighborhood(self):						#是否需要将neibor函数中的值算出来。在随机化后立即产生？如果不用，在哪里计算F的值
+	def init_neighborhood(self):						
 		dis ={}
 		self.neibor = {}
 		for num in range(len(self.dict_sub)):
@@ -105,14 +105,12 @@ class MOEAD_TS():
 		for i in range(self.subnum):
 			ind = individual(self.file_name)
 			ind.randomize()
-			ind.get_obj()
+			ind.get_obj()								#每次随机化后就生成目标函数的值
 			self.update_reference_point(ind)
-			self.dict_sub[i].individual = ind
+			self.dict_sub[i].individual = deepcopy(ind)
+			self.updateEP(ind)
 			self.FunEvals += 1
 		print "init_population done!"
-
-	def update_neighbor_solution(self):					
-		pass
 
 	def update_reference_point(self,ind):					#此处求个体中的函数值，执行此步骤后才有函数值
 		
@@ -132,28 +130,27 @@ class MOEAD_TS():
 			return True
 		#num_1,num_2 = 0,0
 		for i in self.EP:
-			if (self.dominate(i.func,ind_c.func)):
+			if (self.dominate(i,ind_c)):
 				return False
-		self.EP.append(ind_c)
+		
 		#print 'before',len(self.EP)
-		self.EP = [i for i in self.EP if self.dominate(ind_c.func,i.func)==False]
-		self.EP = list(set(self.EP))
+		self.EP = [i for i in self.EP if self.dominate(ind_c,i)==False]
+		self.EP.append(ind_c)
 		#print 'after',len(self.EP)
 		
 		#print 'append'
 		return True
 
-	def dominate(self,x,y):
+	def dominate(self,ind_x,ind_y):
 		#判断x是否支配y
-		if(x[0] <= y[0] and x[1] < y[1]):
+		if(ind_x.func[0] <= ind_y.func[0] and ind_x.func[1] < ind_y.func[1]):
 			return True
-		if(x[0] < y[0] and x[1] <= y[1]):
+		if(ind_x.func[0] < ind_y.func[0] and ind_x.func[1] <= ind_y.func[1]):
+			return True
+		if(ind_x.func == ind_y.func and ind_x.array == ind_y.array):
 			return True
 		return False
 
-
-
-	
 	def partially_matched_crossover(self,p1,p2):
 		#随机选择交叉点
 
@@ -175,11 +172,26 @@ class MOEAD_TS():
 			while(num1 in p2.array[k1:k2]):
 				num1 = p1.array[k1:k2][p2.array[k1:k2].index(num1)]
 			ind1.array[i] = num1
-
-
+		#ind1.cut,ind2.cut = ind2.cut,ind1.cut
+		'''
+		#随机生成cut
+		cut = randint(1,self.room - self.cent_a - self.cent_b - 1)
+		ind1.cut = [cut,self.cent_a,self.cent_b,self.room - self.cent_a - self.cent_b - cut]
+		cut = randint(1,self.room - self.cent_a - self.cent_b - 1)
+		ind2.cut = [cut,self.cent_a,self.cent_b,self.room - self.cent_a - self.cent_b - cut]
+		'''
 		ind1.get_obj()
 		ind2.get_obj()
 		return ind1,ind2
+
+	def mutation(self,p):
+		k1,k2 = randint(0,self.room-1),randint(0,self.room-1)
+		if(k1 == k2):
+			k2 = (k2 + 1) % self.room
+		ind = deepcopy(p)
+		ind.array[k1],ind.array[k2] = ind.array[k2],ind.array[k1]
+		ind.get_obj()
+		return ind
 
 	def show(self):
 		print '1.sub_problem'
@@ -194,7 +206,9 @@ class MOEAD_TS():
 		self.init_neighborhood()
 		self.init_reference_point()
 		self.init_population()		#print self.list_sub[1].compute_fitness_value(self.reference)	返回目标子问题函数值
-
+		
+		print len(self.dict_sub)
+		
 		while(self.FunEvals < self.MaxFunEvals):
 			
 			for i in self.dict_sub:
@@ -203,21 +217,25 @@ class MOEAD_TS():
 					id1 = (id1 + 1) % self.neighborsize
 				p1,p2 = self.dict_sub[self.dict_sub[i].list_neibor[id1]].individual ,self.dict_sub[self.dict_sub[i].list_neibor[id2]].individual 			#产生两个父代
 				
+				if uniform(0,1) < 0.1:
+					chd1,chd2 = self.mutation(p1),self.mutation(p2)
+				else:
+					chd1,chd2 = self.partially_matched_crossover(p1,p2)
+
 				
-				chd1,chd2 = self.partially_matched_crossover(p1,p2)
-				if(set(chd1.array)<8):
-					print 'chd1 error'
-				if(set(chd2.array)<8):
-					print 'chd1 error'
 				#	print chd1.array,chd2.array
 				
+				#for j in self.dict_sub[i].list_neibor:
+				#	print j,self.dict_sub[j].individual.array
+				#print '--------------------'
 				
 				#更新邻居解
 				for j in self.dict_sub[i].list_neibor:
 					if chd1.compute_fitness_value(self.dict_sub[j].lam,self.reference) < self.dict_sub[j].individual.compute_fitness_value(self.dict_sub[j].lam,self.reference):
-						self.dict_sub[j].individual = chd1
+						self.dict_sub[j].individual = deepcopy(chd1)
 					if chd2.compute_fitness_value(self.dict_sub[j].lam,self.reference) < self.dict_sub[j].individual.compute_fitness_value(self.dict_sub[j].lam,self.reference):
-						self.dict_sub[j].individual = chd2
+						self.dict_sub[j].individual = deepcopy(chd2)
+
 
 				#更新参考点
 				self.update_reference_point(chd1)
@@ -228,7 +246,7 @@ class MOEAD_TS():
 				self.updateEP(chd2)
 
 				self.FunEvals += 1
-				if(self.FunEvals % 100 == 0):
+				if(self.FunEvals % 1000 == 0):
 					print self.FunEvals
 		print self.reference
 		
@@ -236,9 +254,10 @@ class MOEAD_TS():
 			print i.func
 			print i.array
 		print len(self.EP)
-
+		
 		
 if __name__ =='__main__':
-	moead_ts = MOEAD_TS(210,'data/example_1.txt')
+	moead_ts = MOEAD_TS(3000,'data/example_1_8.txt')
 	moead_ts.run()
 	
+
