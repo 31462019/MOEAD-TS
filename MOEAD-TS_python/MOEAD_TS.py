@@ -25,6 +25,8 @@ class MOEAD_TS():
 		self.EP = []
 		self.file_name = file_name
 
+		self.bestfunc = [0,0]
+
 		self.FunEvals = 0
 		self.read_data()
 		#读取文件数据
@@ -118,6 +120,8 @@ class MOEAD_TS():
 		for i in range(self.numF):
 			if ind.func[i] < self.reference[i]:
 				self.reference[i] = ind.func[i]
+				self.bestfunc[i] = self.FunEvals
+
 		#print 'reference',self.reference
 		
 
@@ -151,8 +155,43 @@ class MOEAD_TS():
 			return True
 		return False
 
+	def cycle_crossover(self,p1,p2):
+		#循环交叉
+		mark = [0]*self.room
+		#print mark
+		ind1,ind2 = deepcopy(p1),deepcopy(p2)
+		#print p1.array,p2.array
+		count = 0
+		for i in range(self.room):
+			if mark[i] == 1:
+				continue
+			if(count %2 == 1):
+				count += 1
+				j = i
+				ind1.array[i],ind2.array[i] = p2.array[i],p1.array[i]
+				mark[i] = 1
+		#		print i,p1.array[i],p2.array[j]
+				
+				while(p2.array[j] != p1.array[i]):
+					j = p1.array.index(p2.array[j])
+					ind1.array[j],ind2.array[j] = p2.array[j],p1.array[j]
+					mark[j] = 1
+			else:
+				count += 1
+				j = i
+				mark[i] = 1
+				while(p1.array[j] != p2.array[i]):
+					j = p2.array.index(p1.array[j])
+					#ind1.array[j],ind2.array[j] = p1.array[j],p2.array[j]
+					mark[j] = 1
+		#print ind1.array,ind2.array
+		ind1.get_obj()
+		ind2.get_obj()
+		return ind1,ind2
+
+
 	def partially_matched_crossover(self,p1,p2):
-		#随机选择交叉点
+		#部分映射交叉 随机选择交叉点
 
 		k1,k2 = randint(0,self.room),randint(0,self.room)
 		if(k1 == k2):
@@ -173,8 +212,9 @@ class MOEAD_TS():
 				num1 = p1.array[k1:k2][p2.array[k1:k2].index(num1)]
 			ind1.array[i] = num1
 		#ind1.cut,ind2.cut = ind2.cut,ind1.cut
-		'''
+		
 		#随机生成cut
+		'''
 		cut = randint(1,self.room - self.cent_a - self.cent_b - 1)
 		ind1.cut = [cut,self.cent_a,self.cent_b,self.room - self.cent_a - self.cent_b - cut]
 		cut = randint(1,self.room - self.cent_a - self.cent_b - 1)
@@ -206,9 +246,7 @@ class MOEAD_TS():
 		self.init_neighborhood()
 		self.init_reference_point()
 		self.init_population()		#print self.list_sub[1].compute_fitness_value(self.reference)	返回目标子问题函数值
-		
-		print len(self.dict_sub)
-		
+
 		while(self.FunEvals < self.MaxFunEvals):
 			
 			for i in self.dict_sub:
@@ -217,15 +255,20 @@ class MOEAD_TS():
 					id1 = (id1 + 1) % self.neighborsize
 				p1,p2 = self.dict_sub[self.dict_sub[i].list_neibor[id1]].individual ,self.dict_sub[self.dict_sub[i].list_neibor[id2]].individual 			#产生两个父代
 				
-				if uniform(0,1) < 0.1:
-					chd1,chd2 = self.mutation(p1),self.mutation(p2)
-				else:
-					chd1,chd2 = self.partially_matched_crossover(p1,p2)
+				tag = uniform(0,1)
 
-				
+				if tag < 0.5:
+					chd1,chd2 = self.mutation(p1),self.mutation(p2)
+				#elif tag >= 0.5 and tag < 0.7:
+				elif tag <0.75:
+					chd1,chd2 = self.partially_matched_crossover(p1,p2)
+				else:
+					chd1,chd2 = self.cycle_crossover(p1,p2)
+				#chd1,chd2 = self.cycle_crossover(p1,p2)
+					
 				#	print chd1.array,chd2.array
 				
-				#for j in self.dict_sub[i].list_neibor:
+				#for j in self.dict_sub[i].list_neibor:0
 				#	print j,self.dict_sub[j].individual.array
 				#print '--------------------'
 				
@@ -249,15 +292,14 @@ class MOEAD_TS():
 				if(self.FunEvals % 1000 == 0):
 					print self.FunEvals
 		print self.reference
-		
-		for i in self.EP:
-			print i.func
-			print i.array
+		a,b = [i.func[0] for i in self.EP],[i.func[1] for i in self.EP]
+		c = [i.func for i in self.EP]
+		print a,b
+		print c
 		print len(self.EP)
+		print self.bestfunc
 		
 		
 if __name__ =='__main__':
-	moead_ts = MOEAD_TS(3000,'data/example_1_8.txt')
+	moead_ts = MOEAD_TS(10000,'data/example_2_10.txt')
 	moead_ts.run()
-	
-

@@ -21,10 +21,10 @@ class individual():
 		#产生随机解
 		shuffle(self.array)				#将顺序打乱，即随机产生初始解
 		cut = randint(1,self.num-1)
-		self.cut = [cut,self.a,self.b,self.num-cut]
-		#self.cut = [2,2,2,2]
+		#self.cut = [cut,self.a,self.b,self.num-cut]
+		self.cut = [3,2,2,3]
 		#self.gap = self.limit_wid	#初始化时将其设置为最小值
-		self.gap = [3.25,2.075,2.0]
+		self.gap = [2.15,2,2]
 		'''
 		self.wid = [0]*3				#计算三行的宽度
 		for i in range(self.cut[0]):
@@ -60,6 +60,7 @@ class individual():
 
 		#获取目标函数值
 		self.func = [0.0,0.0]
+		#print self.list_dis
 		for i in range(self.room-1):
 			for j in range(i+1,self.room):
 				self.func[0] += self.list_dis[i][j]*self.flow[i][j]
@@ -124,7 +125,7 @@ class individual():
 	def compute_fitness_value(self,lam,reference):								#计算适应度函数，切比雪夫方法
 		
 		a = [lam[j]*abs(self.func[j] - reference[j]) for j in range(len(lam))]
-		a[1] = a[1]*500
+		#a[1] = a[1]*500
 		#print self.func
 		return max(a) 
 
